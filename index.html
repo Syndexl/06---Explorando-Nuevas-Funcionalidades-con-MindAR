@@ -1,12 +1,88 @@
 
-<html>
-  <head>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realidad Aumentada con Joystick</title>
     <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=3tiquSZdFKZP6FECDR5PtZAh41eoXWJjWq_BDXmZwemDJAzIBwlDCQ417zMDjEsAXrtcBls9uEsdFg1sV8D9MDakcUeFDUfwP-hxRiLM1zTaZXaJeIn1msZVpI-QasRmwDaA7W6k9Tmvbp90vqzlGAPEDkaH6IyLKDXLG5OGN_qICigquUcxgW_lgMiIIFBj" charset="UTF-8"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image.prod.js"></script>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
-  </head>
-  <body>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Estilos para el joystick */
+        #joystick-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 120px;
+            height: 120px;
+            z-index: 1000;
+            touch-action: none;
+        }
+        
+        #joystick-base {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        #joystick-handle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Indicador de instrucciones */
+        #instructions {
+            position: fixed;
+            bottom: 160px;
+            right: 30px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            max-width: 140px;
+            z-index: 1000;
+        }
+        
+        /* Botón para alternar entre modelos */
+        #model-toggle {
+            position: fixed;
+            bottom: 160px;
+            left: 20px;
+            padding: 12px 20px;
+            background-color: rgba(30, 136, 229, 0.9);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        #model-toggle:active {
+            background-color: rgba(21, 101, 192, 0.9);
+        }
+    </style>
+</head>
+<body>
     <a-scene mindar-image="imageTargetSrc: ./targets.mind;" color-space="sRGB" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
       <a-assets>
@@ -24,19 +100,167 @@
       <!-- Primer target (targetIndex: 0) -->
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane src="#card1" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel1" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
+        <a-gltf-model id="model1" rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel1" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
         </a-gltf-model>
       </a-entity>
       
       <!-- Segundo target (targetIndex: 1) -->
       <a-entity mindar-image-target="targetIndex: 1">
         <a-plane src="#card2" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel2" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
+        <a-gltf-model id="model2" rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel2" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
         </a-gltf-model>
       </a-entity>
     </a-scene>
-  </body>
+    
+    <div id="instructions">
+        Usa el joystick para rotar el modelo 3D
+    </div>
+    
+    <div id="joystick-container">
+        <div id="joystick-base">
+            <div id="joystick-handle"></div>
+        </div>
+    </div>
+    
+    <button id="model-toggle">Cambiar modelo activo</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a los modelos
+            const model1 = document.getElementById('model1');
+            const model2 = document.getElementById('model2');
+            let activeModel = null;
+            
+            // Referencias al joystick
+            const joystickContainer = document.getElementById('joystick-container');
+            const joystickHandle = document.getElementById('joystick-handle');
+            const instructions = document.getElementById('instructions');
+            const toggleButton = document.getElementById('model-toggle');
+            
+            // Variables para el estado del joystick
+            let joystickActive = false;
+            let joystickBaseX, joystickBaseY, joystickRadius;
+            let currentRotation = { x: 0, y: 0 };
+            
+            // Inicializar el joystick
+            function initJoystick() {
+                const baseRect = joystickContainer.getBoundingClientRect();
+                joystickBaseX = baseRect.left + baseRect.width / 2;
+                joystickBaseY = baseRect.top + baseRect.height / 2;
+                joystickRadius = baseRect.width / 2;
+                
+                // Eventos táctiles
+                joystickContainer.addEventListener('touchstart', handleStart);
+                joystickContainer.addEventListener('touchmove', handleMove);
+                joystickContainer.addEventListener('touchend', handleEnd);
+                
+                // Eventos de ratón
+                joystickContainer.addEventListener('mousedown', handleStart);
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('mouseup', handleEnd);
+            }
+            
+            // Manejar inicio de interacción
+            function handleStart(e) {
+                e.preventDefault();
+                joystickActive = true;
+                instructions.style.display = 'none';
+            }
+            
+            // Manejar movimiento
+            function handleMove(e) {
+                if (!joystickActive) return;
+                
+                let clientX, clientY;
+                
+                if (e.type.includes('touch')) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                // Calcular distancia desde el centro
+                const dx = clientX - joystickBaseX;
+                const dy = clientY - joystickBaseY;
+                const distance = Math.min(joystickRadius, Math.sqrt(dx * dx + dy * dy));
+                
+                // Calcular ángulo
+                const angle = Math.atan2(dy, dx);
+                
+                // Posicionar el handle
+                const handleX = Math.cos(angle) * distance;
+                const handleY = Math.sin(angle) * distance;
+                
+                joystickHandle.style.transform = `translate(${handleX}px, ${handleY}px)`;
+                
+                // Rotar el modelo activo si existe
+                if (activeModel) {
+                    // Sensibilidad de rotación (ajustable)
+                    const sensitivity = 2.5;
+                    
+                    // Calcular rotación basada en la posición del joystick
+                    currentRotation.y = (dx / joystickRadius) * sensitivity;
+                    currentRotation.x = (dy / joystickRadius) * sensitivity;
+                    
+                    // Aplicar rotación al modelo
+                    activeModel.setAttribute('rotation', {
+                        x: currentRotation.x,
+                        y: currentRotation.y,
+                        z: activeModel.getAttribute('rotation').z
+                    });
+                }
+            }
+            
+            // Manejar fin de interacción
+            function handleEnd() {
+                joystickActive = false;
+                joystickHandle.style.transform = 'translate(0, 0)';
+                
+                // Restaurar instrucciones después de un tiempo
+                setTimeout(() => {
+                    if (!joystickActive) {
+                        instructions.style.display = 'block';
+                    }
+                }, 2000);
+            }
+            
+            // Función para alternar entre modelos activos
+            toggleButton.addEventListener('click', function() {
+                if (activeModel === model1) {
+                    activeModel = model2;
+                    toggleButton.textContent = "Modelo 2 activo";
+                } else {
+                    activeModel = model1;
+                    toggleButton.textContent = "Modelo 1 activo";
+                }
+                
+                // Mostrar mensaje de confirmación
+                instructions.textContent = activeModel === model1 ? 
+                    "Modelo 1 activo. Usa el joystick para rotar." : 
+                    "Modelo 2 activo. Usa el joystick para rotar.";
+                instructions.style.display = 'block';
+                
+                // Ocultar instrucciones después de 3 segundos
+                setTimeout(() => {
+                    instructions.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Inicializar el joystick cuando la escena esté cargada
+            const scene = document.querySelector('a-scene');
+            scene.addEventListener('loaded', function() {
+                initJoystick();
+                // Establecer modelo 1 como activo por defecto
+                activeModel = model1;
+                toggleButton.textContent = "Modelo 1 activo";
+            });
+        });
+    </script>
+</body>
 </html>
+
 
 
 
