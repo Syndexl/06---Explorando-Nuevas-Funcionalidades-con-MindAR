@@ -1,4 +1,5 @@
 
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
@@ -8,27 +9,24 @@
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
       #loading-screen {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         z-index: 9999;
-        font-family: Arial, sans-serif;
-      }
-      #error-message {
-        color: #ff4444;
-        margin-top: 20px;
-        text-align: center;
-        max-width: 80%;
-        display: none;
       }
       .loader {
         border: 5px solid #f3f3f3;
@@ -43,18 +41,39 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+      #start-button {
+        margin-top: 20px;
+        padding: 12px 24px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        display: none;
+      }
+      #start-button:hover {
+        background: #2980b9;
+      }
+      #error-message {
+        color: #ff6b6b;
+        margin-top: 15px;
+        text-align: center;
+        max-width: 80%;
+        display: none;
+      }
     </style>
   </head>
   <body>
     <div id="loading-screen">
       <div class="loader"></div>
-      <p>Cargando experiencia de realidad aumentada...</p>
-      <p id="status">Inicializando</p>
+      <p id="status">Cargando experiencia de realidad aumentada...</p>
+      <button id="start-button">INICIAR CÁMARA</button>
       <div id="error-message"></div>
     </div>
 
     <a-scene 
-      mindar-image="imageTargetSrc: ./targets.mind, ./segundo-target.mind; autoStart: false;" 
+      mindar-image="imageTargetSrc: https://raw.githubusercontent.com/syndexl/06---Explorando-Nuevas-Funcionalidades-con-MindAR/main/targets.mind; autoStart: false;" 
       color-space="sRGB" 
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false"
@@ -62,12 +81,12 @@
     >
       <a-assets>
         <!-- Assets para el primer target -->
-        <img id="card1" src="./Fondo.png" />
-        <a-asset-item id="avatarModel1" src="./Barco3.glb"></a-asset-item>
+        <img id="card1" src="https://raw.githubusercontent.com/syndexl/06---Explorando-Nuevas-Funcionalidades-con-MindAR/main/Fondo.png" />
+        <a-asset-item id="avatarModel1" src="https://raw.githubusercontent.com/syndexl/06---Explorando-Nuevas-Funcionalidades-con-MindAR/main/Barco3.glb"></a-asset-item>
         
         <!-- Assets para el segundo target -->
-        <img id="card2" src="./Fondo2.png" />
-        <a-asset-item id="avatarModel2" src="./Modelo2.glb"></a-asset-item>
+        <img id="card2" src="https://raw.githubusercontent.com/tu-usuario/tu-repositorio/main/Fondo2.png" />
+        <a-asset-item id="avatarModel2" src="https://raw.githubusercontent.com/tu-usuario/tu-repositorio/main/Modelo2.glb"></a-asset-item>
       </a-assets>
       
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -75,73 +94,78 @@
       <!-- Primer target (targetIndex: 0) -->
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane src="#card1" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel1" 
-          animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
-        </a-gltf-model>
+        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel1"></a-gltf-model>
       </a-entity>
       
       <!-- Segundo target (targetIndex: 1) -->
       <a-entity mindar-image-target="targetIndex: 1">
         <a-plane src="#card2" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel2" 
-          animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
-        </a-gltf-model>
+        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel2"></a-gltf-model>
       </a-entity>
     </a-scene>
 
     <script>
-      // Verificar que todos los recursos estén cargados correctamente
       document.addEventListener('DOMContentLoaded', function() {
         const scene = document.querySelector('a-scene');
         const loadingScreen = document.getElementById('loading-screen');
         const statusText = document.getElementById('status');
+        const startButton = document.getElementById('start-button');
         const errorMessage = document.getElementById('error-message');
         
-        // Verificar si MindAR está cargado
-        if (typeof MindAR === 'undefined') {
-          showError('MindAR no se cargó correctamente. Verifica tu conexión a internet.');
-          return;
-        }
-        
-        // Esperar a que A-Frame esté listo
-        if (scene.hasLoaded) {
+        // Verificar si MindAR y A-Frame están cargados
+        setTimeout(function() {
+          if (typeof MindAR === 'undefined') {
+            showError('Error: MindAR no se cargó. Verifica tu conexión a internet.');
+            return;
+          }
+          
+          if (typeof AFRAME === 'undefined') {
+            showError('Error: A-Frame no se cargó correctamente.');
+            return;
+          }
+          
           initializeAR();
-        } else {
-          scene.addEventListener('loaded', initializeAR);
-        }
+        }, 2000);
         
         function initializeAR() {
-          statusText.textContent = 'Cargando targets...';
+          statusText.textContent = 'Sistemas cargados correctamente';
           
-          const mindarScene = scene.systems["mindar-image-system"];
+          scene.addEventListener('loaded', function() {
+            statusText.textContent = 'Haz clic en el botón para iniciar la cámara';
+            startButton.style.display = 'block';
+          });
           
-          // Esperar a que los targets se carguen
-          mindarScene.start().then(() => {
-            statusText.textContent = '¡Listo! Busca los targets con tu cámara';
-            // Ocultar pantalla de carga después de un breve momento
-            setTimeout(() => {
+          startButton.addEventListener('click', function() {
+            startButton.style.display = 'none';
+            statusText.textContent = 'Solicitando acceso a la cámara...';
+            
+            const mindarScene = scene.systems["mindar-image-system"];
+            
+            mindarScene.start().then(() => {
               loadingScreen.style.display = 'none';
-            }, 2000);
-          }).catch((error) => {
-            showError('Error al cargar los targets: ' + error.message + 
-                     '. Verifica que los archivos .mind existan y estén en la ubicación correcta.');
+            }).catch(function(error) {
+              showError('Error al acceder a la cámara: ' + error.message);
+            });
           });
         }
         
         function showError(message) {
+          console.error(message);
           errorMessage.textContent = message;
           errorMessage.style.display = 'block';
           statusText.textContent = 'Error';
+          startButton.style.display = 'none';
         }
         
         // Manejar errores de recursos
         scene.addEventListener('asset-error', function(event) {
-          showError('Error al cargar recurso: ' + event.detail.src);
+          showError('Error al cargar: ' + event.detail.src);
         });
       });
     </script>
   </body>
 </html>
+
 
 
 
