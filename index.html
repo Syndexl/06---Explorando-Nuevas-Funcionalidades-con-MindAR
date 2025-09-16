@@ -1,183 +1,40 @@
 
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Realidad Aumentada con Múltiples Targets</title>
-    
-    <!-- A-Frame primero -->
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    
-    <!-- MindAR después de A-Frame -->
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=3tiquSZdFKZP6FECDR5PtZAh41eoXWJjWq_BDXmZwemDJAzIBwlDCQ417zMDjEsAXrtcBls9uEsdFg1sV8D9MDakcUeFDUfwP-hxRiLM1zTaZXaJeIn1msZVpI-QasRmwDaA7W6k9Tmvbp90vqzlGAPEDkaH6IyLKDXLG5OGN_qICigquUcxgW_lgMiIIFBj" charset="UTF-8"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image.prod.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
-    
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        font-family: Arial, sans-serif;
-        background: #000;
-      }
-      #loading-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.95);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-      }
-      .loader {
-        border: 5px solid #333;
-        border-top: 5px solid #4CAF50;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-      }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      #start-button {
-        margin-top: 20px;
-        padding: 15px 30px;
-        background: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 18px;
-        cursor: pointer;
-        font-weight: bold;
-        display: none;
-      }
-      #start-button:hover {
-        background: #45a049;
-        transform: scale(1.05);
-      }
-      #error-message {
-        color: #ff4444;
-        margin-top: 20px;
-        text-align: center;
-        max-width: 90%;
-        padding: 15px;
-        background: rgba(255, 0, 0, 0.1);
-        border-radius: 8px;
-        display: none;
-      }
-      .success {
-        color: #4CAF50 !important;
-      }
-    </style>
   </head>
   <body>
-    <div id="loading-screen">
-      <div class="loader"></div>
-      <p id="status">Inicializando realidad aumentada...</p>
-      <button id="start-button">ACTIVAR CÁMARA</button>
-      <div id="error-message"></div>
-    </div>
-
-    <a-scene 
-      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;" 
-      color-space="sRGB" 
-      vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false"
-      loading-screen="enabled: false"
-    >
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind;" color-space="sRGB" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      
       <a-assets>
+        <!-- Assets para el primer target -->
         <img id="card1" src="./Fondo.png" />
         <a-asset-item id="avatarModel1" src="./Barco3.glb"></a-asset-item>
+        
+        <!-- Assets para el segundo target -->
         <img id="card2" src="./Fondo2.png" />
         <a-asset-item id="avatarModel2" src="./Modelo2.glb"></a-asset-item>
       </a-assets>
       
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
       
+      <!-- Primer target (targetIndex: 0) -->
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane src="#card1" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-gltf-model rotation="0 0 0" position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel1"></a-gltf-model>
+        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel1" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
+        </a-gltf-model>
+      </a-entity>
+      
+      <!-- Segundo target (targetIndex: 1) -->
+      <a-entity mindar-image-target="targetIndex: 1">
+        <a-plane src="#card2" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
+        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel2" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
+        </a-gltf-model>
       </a-entity>
     </a-scene>
-
-    <script>
-      // Verificar carga de librerías
-      function checkLibrariesLoaded() {
-        let checks = 0;
-        const maxChecks = 50; // 5 segundos máximo
-        const checkInterval = 100; // cada 100ms
-        
-        const checkIntervalId = setInterval(function() {
-          checks++;
-          
-          if (typeof AFRAME !== 'undefined' && typeof MindAR !== 'undefined') {
-            clearInterval(checkIntervalId);
-            document.getElementById('status').textContent = 'Librerías cargadas correctamente';
-            document.getElementById('status').className = 'success';
-            initializeAR();
-            return;
-          }
-          
-          if (checks >= maxChecks) {
-            clearInterval(checkIntervalId);
-            showError('Las librerías no se cargaron. Posibles soluciones:<br>1. Verifica tu conexión a internet<br>2. Actualiza la página<br>3. Prueba en otro navegador');
-            return;
-          }
-          
-          document.getElementById('status').textContent = `Cargando librerías... (${checks * 2}%)`;
-          
-        }, checkInterval);
-      }
-      
-      function initializeAR() {
-        const scene = document.querySelector('a-scene');
-        const startButton = document.getElementById('start-button');
-        
-        scene.addEventListener('loaded', function() {
-          startButton.style.display = 'block';
-          document.getElementById('status').innerHTML = '¡Listo!<br>Haz clic para activar la cámara y apunta a tus targets';
-        });
-        
-        startButton.addEventListener('click', function() {
-          startButton.style.display = 'none';
-          document.getElementById('status').textContent = 'Activando cámara...';
-          
-          const mindarScene = scene.systems["mindar-image-system"];
-          
-          mindarScene.start().then(() => {
-            document.getElementById('loading-screen').style.display = 'none';
-          }).catch(function(error) {
-            showError('Error con la cámara: ' + error.message + 
-                     '<br>Asegúrate de dar permisos de cámara al navegador');
-          });
-        });
-      }
-      
-      function showError(message) {
-        const errorDiv = document.getElementById('error-message');
-        errorDiv.innerHTML = message;
-        errorDiv.style.display = 'block';
-        document.getElementById('status').textContent = 'Error';
-        document.getElementById('start-button').style.display = 'none';
-      }
-      
-      // Iniciar verificación después de que la página cargue
-      window.addEventListener('load', function() {
-        setTimeout(checkLibrariesLoaded, 1000);
-      });
-      
-      // Manejar errores globales
-      window.addEventListener('error', function(e) {
-        showError('Error: ' + e.message);
-      });
-    </script>
   </body>
 </html>
 
