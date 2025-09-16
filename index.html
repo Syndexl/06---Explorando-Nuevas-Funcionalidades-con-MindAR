@@ -151,11 +151,6 @@
           
           const mindarScene = scene.systems["mindar-image-system"];
           
-          if (!mindarScene) {
-            showError('Sistema MindAR no encontrado');
-            return;
-          }
-          
           mindarScene.start().then(() => {
             document.getElementById('loading-screen').style.display = 'none';
           }).catch(function(error) {
@@ -185,6 +180,7 @@
     </script>
   </body>
 </html>
+
 
 
 
